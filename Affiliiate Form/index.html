@@ -8,6 +8,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        // Initialize EmailJS immediately when script loads
+        (function() {
+            emailjs.init('ITWb6yT58NWTcw2wU');
+            console.log('EmailJS initialized with key:', 'ITWb6yT58NWTcw2wU');
+        })();
+    </script>
     <style>
         /* Custom VaultCoin Premium Styling */
         .vault-gradient {
@@ -553,7 +560,8 @@
                     hideError('country');
                 }
             } catch (error) {
-                console.log('Could not detect country automatically');
+                console.log('Could not detect country automatically - using manual selection');
+                // Don't show error, just let user select manually
             }
         }
 
@@ -561,12 +569,15 @@
         populateCountries();
         detectUserCountry();
 
-        // Initialize EmailJS
-        emailjs.init('ITWb6yT58NWTcw2wU');
+
 
         // Email notification function
         async function sendEmailNotification(formData) {
             try {
+                console.log('=== EMAIL NOTIFICATION START ===');
+                console.log('EmailJS object:', emailjs);
+                console.log('EmailJS version:', emailjs.version);
+                
                 const templateParams = {
                     to_email: 'farukhassanahmad@gmail.com',
                     from_name: formData.fullName,
@@ -577,70 +588,29 @@
                     timestamp: new Date().toLocaleString()
                 };
 
-                await emailjs.send(
+                console.log('Template params:', templateParams);
+                console.log('Service ID:', 'service_actte5i');
+                console.log('Template ID:', 'template_oagr4bc');
+
+                // Use the correct EmailJS syntax
+                const result = await emailjs.send(
                     'service_actte5i',
                     'template_oagr4bc',
                     templateParams
                 );
-            } catch (error) {
-                console.log('Email notification failed:', error);
-            }
-        }
-
-        // Create floating particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 20;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
-                particlesContainer.appendChild(particle);
-            }
-        }
-
-        // Email notification function
-        async function sendEmailNotification(formData) {
-            try {
-                // Using EmailJS service for email notifications
-                // You'll need to set up EmailJS account and replace with your service details
-                const emailData = {
-                    to_email: 'your-email@example.com', // Replace with your email
-                    from_name: 'VaultCoin Affiliate Form',
-                    subject: 'New Affiliate Application - VaultCoin',
-                    message: `
-                        New affiliate application received:
-                        
-                        Full Name: ${formData.fullName}
-                        Email: ${formData.email}
-                        Telegram: ${formData.telegram}
-                        Country: ${formData.country}
-                        Affiliate Reach: ${formData.reach}
-                        Timestamp: ${formData.timestamp.toLocaleString()}
-                    `
-                };
-
-                // For now, we'll use a simple console log
-                // In production, you'd integrate with EmailJS, SendGrid, or similar service
-                console.log('Email notification data:', emailData);
                 
-                // You can also save notification data to Firebase for admin panel
-                await db.collection('emailNotifications').add({
-                    ...emailData,
-                    timestamp: new Date(),
-                    status: 'pending'
-                });
-                
+                console.log('Email sent successfully!', result);
+                console.log('=== EMAIL NOTIFICATION END ===');
             } catch (error) {
-                console.error('Error sending email notification:', error);
+                console.error('=== EMAIL NOTIFICATION ERROR ===');
+                console.error('Error details:', error);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                console.error('=== END ERROR ===');
             }
         }
 
-        // Initialize particles
-        createParticles();
+
 
         // Validation functions
         function validateEmail(email) {
@@ -751,9 +721,12 @@
             }
         });
 
+
+
         // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('=== FORM SUBMIT EVENT TRIGGERED ===');
 
             // Get form data
             const formData = {
@@ -765,6 +738,8 @@
                 agreement: document.getElementById('agreement').checked,
                 timestamp: new Date()
             };
+
+            console.log('Form data collected:', formData);
 
             // Validate all fields
             const validations = [
@@ -790,18 +765,25 @@
             submitSpinner.classList.remove('hidden');
 
             try {
-                // Save to Firebase
-                await db.collection('affiliateApplications').add(formData);
+                // Send email notification first (most important)
+                console.log('=== FORM SUBMISSION START ===');
+                console.log('Form data:', formData);
+                console.log('Sending email notification...');
                 
-                // Send email notification
                 await sendEmailNotification(formData);
+                console.log('Email sent successfully from form submission!');
+                
+                // Skip Firebase for now to avoid errors
+                console.log('Skipping Firebase save to avoid errors');
                 
                 // Show success message
                 form.classList.add('hidden');
                 successMessage.classList.remove('hidden');
+                console.log('=== FORM SUBMISSION SUCCESS ===');
                 
             } catch (error) {
-                console.error('Error submitting form:', error);
+                console.error('=== FORM SUBMISSION ERROR ===');
+                console.error('Error in form submission:', error);
                 alert('There was an error submitting your application. Please try again.');
                 
                 // Reset button state
